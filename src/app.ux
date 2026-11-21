@@ -1,0 +1,6 @@
+<script>
+export default {
+  onCreate() { console.info('Street Dash started') },
+  onDestroy() { console.info('Street Dash closed') }
+}
+</script>

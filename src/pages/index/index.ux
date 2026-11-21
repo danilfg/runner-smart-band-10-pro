@@ -1,0 +1,335 @@
+<template>
+  <stack class="screen" @swipe="handleSwipe" @click="handleTap">
+    <image class="panorama" src="/common/city_0.png" style="left: {{cityX0}}px;"></image>
+    <image class="panorama" src="/common/city_1.png" style="left: {{cityX1}}px;"></image>
+
+    <image if="{{showCoin}}" class="coin" src="/common/coin.png" style="left: {{coinX}}px; top: {{coinY}}px;"></image>
+    <image if="{{showObstacle}}" class="prop" src="{{obstacleImage}}" style="left: {{obstacleX}}px; top: {{obstacleY}}px; width: {{obstacleW}}px; height: {{obstacleH}}px;"></image>
+    <image if="{{showVillain}}" class="enemy" src="/common/villain_car.png" style="left: {{villainX}}px;"></image>
+    <image class="character" src="{{heroImage}}" style="left: {{heroX}}px; top: {{heroTop}}px;"></image>
+
+    <div if="{{mode === 'play'}}" class="hud">
+      <div class="hud-left">
+        <text class="hud-caption">SCORE</text>
+        <text class="hud-number">{{score}}</text>
+      </div>
+      <div class="hud-right">
+        <text class="hud-caption">COINS</text>
+        <text class="hud-number">{{coins}}</text>
+      </div>
+      <text class="hearts">{{heartsText}}</text>
+    </div>
+
+    <div if="{{mode === 'play'}}" class="slide-button" @click="slide">
+      <text class="slide-icon">↓</text>
+      <text class="slide-label">SLIDE</text>
+    </div>
+    <div if="{{mode === 'play'}}" class="pause-button" @click="pause">
+      <text class="pause-label">Ⅱ</text>
+    </div>
+
+    <div if="{{mode === 'menu'}}" class="shade"></div>
+    <div if="{{mode === 'menu'}}" class="menu-panel">
+      <text class="title">STREET DASH</text>
+      <text class="subtitle">ENDLESS CITY RUN</text>
+      <div class="selector">
+        <div class="hero-card" style="border-color: {{boyBorder}};" @click="pickBoy">
+          <image class="pick-image" src="/common/hero_boy.png"></image>
+          <text class="pick-label">KID</text>
+        </div>
+        <div class="hero-card" style="border-color: {{geckoBorder}};" @click="pickGecko">
+          <image class="pick-image" src="/common/hero_gecko.png"></image>
+          <text class="pick-label">GECKO</text>
+        </div>
+      </div>
+      <text class="best-text">BEST  {{best}}</text>
+      <div class="play-button" @click="start">
+        <text class="play-label">PLAY ▶</text>
+      </div>
+      <text class="instructions">TAP TO JUMP  •  SWIPE DOWN TO SLIDE</text>
+    </div>
+
+    <div if="{{mode === 'pause'}}" class="shade"></div>
+    <div if="{{mode === 'pause'}}" class="result-panel">
+      <text class="result-title">PAUSED</text>
+      <text class="result-score">SCORE  {{score}}</text>
+      <div class="action" @click="resume"><text class="action-label">RESUME ▶</text></div>
+      <div class="secondary" @click="toMenu"><text class="secondary-label">MENU</text></div>
+    </div>
+
+    <div if="{{mode === 'over'}}" class="shade"></div>
+    <div if="{{mode === 'over'}}" class="result-panel">
+      <text class="result-title">GAME OVER</text>
+      <text class="result-score">{{score}} POINTS</text>
+      <text class="best-text">BEST  {{best}}    ★ {{coins}}</text>
+      <image class="end-car" src="/common/villain_car.png"></image>
+      <div class="action" @click="start"><text class="action-label">TRY AGAIN ↻</text></div>
+      <div class="secondary" @click="toMenu"><text class="secondary-label">MENU</text></div>
+    </div>
+  </stack>
+</template>
+
+<script>
+import storage from '@system.storage'
+
+const GROUND_TOP = 282
+const FPS_MS = 50
+const HERO_IMAGES = {
+  boy: ['/common/hero_boy.png', '/common/hero_boy_run.png', '/common/hero_boy_duck.png'],
+  gecko: ['/common/hero_gecko.png', '/common/hero_gecko_run.png', '/common/hero_gecko_duck.png']
+}
+const OBSTACLES = [
+  { image: '/common/cone.png', width: 52, height: 60, top: 339, kind: 'ground' },
+  { image: '/common/bin.png', width: 52, height: 76, top: 323, kind: 'ground' },
+  { image: '/common/barrier.png', width: 72, height: 70, top: 314, kind: 'high' }
+]
+
+export default {
+  private: {
+    mode: 'menu',
+    hero: 'boy',
+    heroImage: HERO_IMAGES.boy[0],
+    heroTop: GROUND_TOP,
+    heroX: 54,
+    cityX0: 0,
+    cityX1: 672,
+    score: 0,
+    coins: 0,
+    heartsText: '♥ ♥ ♥',
+    best: 0,
+    boyBorder: '#fff5a0',
+    geckoBorder: '#627887',
+    obstacleX: 380,
+    obstacleY: 339,
+    obstacleW: 52,
+    obstacleH: 60,
+    obstacleImage: '/common/cone.png',
+    showObstacle: false,
+    coinX: 420,
+    coinY: 304,
+    showCoin: false,
+    villainX: 380,
+    showVillain: false
+  },
+  onInit() {
+    this._timer = null
+    this._frame = 0
+    this._jump = 0
+    this._velocity = 0
+    this._slide = 0
+    this._invulnerable = 0
+    this._lives = 3
+    this._distance = 0
+    this._speed = 5.5
+    this._obstacleKind = 'ground'
+    this._touchDown = false
+    this._nextSpawn = 40
+    this._lastTouch = 0
+    try {
+      storage.get({
+        key: 'streetdash_best',
+        success: (r) => { this.best = parseInt(r.data || '0', 10) || 0 },
+        fail: () => {}
+      })
+    } catch (e) { console.warn('Storage unavailable') }
+  },
+  onHide() { this.clearLoop(); if (this.mode === 'play') this.mode = 'pause' },
+  onDestroy() { this.clearLoop() },
+  onBackPress() {
+    if (this.mode === 'play') { this.pause(); return true }
+    if (this.mode === 'pause' || this.mode === 'over') { this.toMenu(); return true }
+    return false
+  },
+  pickBoy() {
+    if (this.mode !== 'menu') return
+    this.hero = 'boy'
+    this.boyBorder = '#fff5a0'
+    this.geckoBorder = '#627887'
+    this.heroImage = HERO_IMAGES.boy[0]
+  },
+  pickGecko() {
+    if (this.mode !== 'menu') return
+    this.hero = 'gecko'
+    this.boyBorder = '#627887'
+    this.geckoBorder = '#fff5a0'
+    this.heroImage = HERO_IMAGES.gecko[0]
+  },
+  start() {
+    this.clearLoop()
+    this._frame = 0
+    this._jump = 0
+    this._velocity = 0
+    this._slide = 0
+    this._invulnerable = 0
+    this._lives = 3
+    this._distance = 0
+    this._speed = 5.5
+    this._nextSpawn = 35
+    this.cityX0 = 0
+    this.cityX1 = 672
+    this.heroTop = GROUND_TOP
+    this.heroImage = HERO_IMAGES[this.hero][0]
+    this.score = 0
+    this.coins = 0
+    this.heartsText = '♥ ♥ ♥'
+    this.showObstacle = false
+    this.showCoin = false
+    this.showVillain = false
+    this.mode = 'play'
+    this._lastTouch = Date.now() + 400
+    this._timer = setInterval(() => this.tick(), FPS_MS)
+  },
+  clearLoop() {
+    if (this._timer) { clearInterval(this._timer); this._timer = null }
+  },
+  pause() { if (this.mode === 'play') { this.mode = 'pause'; this.clearLoop() } },
+  resume() {
+    if (this.mode !== 'pause') return
+    this.mode = 'play'
+    this._lastTouch = Date.now() + 200
+    this._timer = setInterval(() => this.tick(), FPS_MS)
+  },
+  toMenu() { this.clearLoop(); this.mode = 'menu'; this.heroImage = HERO_IMAGES[this.hero][0]; this.heroTop = GROUND_TOP },
+  jump() {
+    if (this.mode !== 'play' || this._slide > 0 || this._jump > 0) return
+    this._velocity = 13.8
+    this._jump = 1
+  },
+  slide() {
+    if (this.mode !== 'play' || this._jump > 0) return
+    this._slide = 14
+  },
+  handleTap() {
+    if (this.mode !== 'play') return
+    const now = Date.now()
+    if (now < this._lastTouch) return
+    this._lastTouch = now + 180
+    this.jump()
+  },
+  handleSwipe(e) {
+    if (this.mode !== 'play') return
+    if (e && e.direction === 'down') this.slide()
+    else if (e && e.direction === 'up') this.jump()
+  },
+  createObstacle() {
+    const n = Math.floor(Math.random() * OBSTACLES.length)
+    const o = OBSTACLES[n]
+    this._obstacleKind = o.kind
+    this.obstacleImage = o.image
+    this.obstacleW = o.width
+    this.obstacleH = o.height
+    this.obstacleY = o.top
+    this.obstacleX = 360
+    this.showObstacle = true
+    this._nextSpawn = this._frame + 30 + Math.floor(Math.random() * 17)
+  },
+  hit() {
+    if (this._invulnerable > 0) return
+    this._invulnerable = 23
+    this._lives -= 1
+    this.heartsText = '♥ '.repeat(this._lives)
+    if (this._lives <= 0) this.finish()
+  },
+  finish() {
+    this.clearLoop()
+    this.mode = 'over'
+    if (this.score > this.best) {
+      this.best = this.score
+      try { storage.set({ key: 'streetdash_best', value: String(this.best) }) } catch (e) { console.warn('Best score not saved') }
+    }
+  },
+  tick() {
+    if (this.mode !== 'play') return
+    this._frame += 1
+    this._distance += this._speed
+    this._speed = Math.min(10.7, 5.5 + this._frame / 510)
+    this.score = Math.floor(this._distance / 9) + this.coins * 25
+    if (this._invulnerable > 0) this._invulnerable -= 1
+    this.cityX0 -= this._speed * 0.5
+    this.cityX1 -= this._speed * 0.5
+    if (this.cityX0 <= -672) this.cityX0 = this.cityX1 + 672
+    if (this.cityX1 <= -672) this.cityX1 = this.cityX0 + 672
+    if (this._jump > 0) {
+      this._jump += this._velocity
+      this._velocity -= 1.45
+      if (this._jump <= 0) { this._jump = 0; this._velocity = 0 }
+    }
+    if (this._slide > 0) this._slide -= 1
+    this.heroTop = GROUND_TOP - this._jump + (this._slide > 0 ? 17 : 0)
+    this.heroImage = HERO_IMAGES[this.hero][this._slide > 0 ? 2 : Math.floor(this._frame / 4) % 2]
+
+    if (!this.showObstacle && this._frame >= this._nextSpawn) this.createObstacle()
+    if (this.showObstacle) {
+      this.obstacleX -= this._speed
+      if (this.obstacleX < -100) this.showObstacle = false
+      else if (this.obstacleX < 111 && this.obstacleX + this.obstacleW > 69) {
+        if (this._obstacleKind === 'high' ? this._slide <= 0 : this._jump < 46) {
+          this.hit()
+        }
+      }
+    }
+    if (!this.showCoin && this._frame % 53 === 15) {
+      this.coinX = 360
+      this.coinY = Math.random() > 0.5 ? 265 : 336
+      this.showCoin = true
+    }
+    if (this.showCoin) {
+      this.coinX -= this._speed
+      if (this.coinX < -45) this.showCoin = false
+      else if (this.coinX < 116 && this.coinX + 35 > 67 &&
+        Math.abs((this.heroTop + 54) - (this.coinY + 20)) < 49) {
+        this.coins += 1
+        this.showCoin = false
+      }
+    }
+    if (!this.showVillain && this._frame > 150 && this._frame % 270 === 0) {
+      this.showVillain = true
+      this.villainX = 360
+    }
+    if (this.showVillain) {
+      this.villainX -= this._speed * 1.25
+      if (this.villainX < -164) this.showVillain = false
+      else if (this.villainX < 118 && this.villainX + 100 > 77 && this._jump < 61) this.hit()
+    }
+  }
+}
+</script>
+
+<style>
+.screen { width: 336px; height: 480px; background-color: #29bfd8; overflow: hidden; }
+.panorama { position: absolute; top: 0px; width: 672px; height: 480px; }
+.character { position: absolute; width: 100px; height: 115px; }
+.coin { position: absolute; width: 40px; height: 40px; }
+.prop { position: absolute; }
+.enemy { position: absolute; top: 306px; width: 152px; height: 100px; }
+.hud { position: absolute; top: 8px; left: 10px; width: 316px; height: 64px; flex-direction: row; justify-content: space-between; }
+.hud-left, .hud-right { flex-direction: column; padding: 4px; background-color: #1d2d4acc; border-radius: 9px; width: 72px; align-items: center; }
+.hud-caption { color: #ccecf4; font-size: 11px; font-weight: bold; text-align: center; }
+.hud-number { color: #ffffff; font-size: 22px; font-weight: bold; text-align: center; }
+.hearts { position: absolute; top: 4px; left: 113px; width: 100px; color: #ff626b; font-size: 19px; text-align: center; font-weight: bold; }
+.slide-button { position: absolute; bottom: 7px; right: 10px; width: 74px; height: 51px; background-color: #1c3450db; border: 2px solid #c7eeef; border-radius: 15px; flex-direction: column; justify-content: center; align-items: center; }
+.slide-icon { color: #ffffff; font-size: 23px; text-align: center; }
+.slide-label { color: #cceeff; font-size: 10px; text-align: center; }
+.pause-button { position: absolute; top: 14px; right: 132px; width: 42px; height: 36px; border-radius: 12px; background-color: #233a4bcc; justify-content: center; align-items: center; }
+.pause-label { color: #ffffff; font-size: 23px; text-align: center; }
+.shade { position: absolute; left: 0px; top: 0px; width: 336px; height: 480px; background-color: #132237bb; }
+.menu-panel { position: absolute; top: 35px; left: 17px; width: 302px; height: 408px; border-radius: 23px; background-color: #142540ed; border: 2px solid #6bdacb; flex-direction: column; align-items: center; }
+.title { margin-top: 15px; color: #ffe08b; font-weight: bold; font-size: 29px; text-align: center; }
+.subtitle { margin-top: 3px; color: #bce8e8; font-weight: bold; font-size: 12px; text-align: center; }
+.selector { width: 274px; margin-top: 16px; flex-direction: row; justify-content: space-around; }
+.hero-card { width: 121px; height: 157px; border-width: 3px; border-radius: 15px; background-color: #244962; flex-direction: column; align-items: center; }
+.pick-image { width: 97px; height: 115px; }
+.pick-label { color: #fff8d4; font-size: 19px; font-weight: bold; text-align: center; }
+.best-text { margin-top: 12px; font-size: 17px; color: #f8e4a2; font-weight: bold; text-align: center; }
+.play-button { width: 226px; height: 56px; margin-top: 12px; border-radius: 17px; background-color: #ffbd51; align-items: center; justify-content: center; border: 3px solid #fce9ae; }
+.play-label { color: #172c3f; font-size: 28px; font-weight: bold; text-align: center; }
+.instructions { margin-top: 14px; width: 268px; color: #c3d8dd; font-size: 12px; text-align: center; }
+.result-panel { position: absolute; top: 79px; left: 26px; width: 284px; height: 324px; border-radius: 23px; background-color: #1b314cec; border: 2px solid #8bdcd7; flex-direction: column; align-items: center; }
+.result-title { margin-top: 22px; color: #ffe48c; font-size: 31px; font-weight: bold; text-align: center; }
+.result-score { margin-top: 10px; color: #ffffff; font-size: 21px; font-weight: bold; text-align: center; }
+.end-car { width: 132px; height: 87px; margin-top: 1px; }
+.action { width: 210px; height: 48px; background-color: #ffbe5b; border-radius: 15px; align-items: center; justify-content: center; margin-top: 12px; }
+.action-label { color: #193047; font-size: 21px; font-weight: bold; text-align: center; }
+.secondary { width: 174px; height: 40px; border: 2px solid #b4d2e6; border-radius: 14px; background-color: #355774; justify-content: center; align-items: center; margin-top: 8px; }
+.secondary-label { color: #ffffff; font-size: 18px; font-weight: bold; text-align: center; }
+</style>
