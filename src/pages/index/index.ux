@@ -81,7 +81,7 @@ const HERO_IMAGES = {
 const OBSTACLES = [
   { image: '/common/cone.png', width: 52, height: 60, top: 339, kind: 'ground' },
   { image: '/common/bin.png', width: 52, height: 76, top: 323, kind: 'ground' },
-  { image: '/common/barrier.png', width: 72, height: 70, top: 314, kind: 'high' }
+  { image: '/common/barrier.png', width: 72, height: 70, top: 259, kind: 'high' }
 ]
 
 export default {
@@ -303,17 +303,17 @@ export default {
 .prop { position: absolute; }
 .enemy { position: absolute; top: 306px; width: 152px; height: 100px; }
 .hud { position: absolute; top: 8px; left: 10px; width: 316px; height: 64px; flex-direction: row; justify-content: space-between; }
-.hud-left, .hud-right { flex-direction: column; padding: 4px; background-color: #1d2d4acc; border-radius: 9px; width: 72px; align-items: center; }
+.hud-left, .hud-right { flex-direction: column; padding: 4px; background-color: rgba(29,45,74,0.8); border-radius: 9px; width: 72px; align-items: center; }
 .hud-caption { color: #ccecf4; font-size: 11px; font-weight: bold; text-align: center; }
 .hud-number { color: #ffffff; font-size: 22px; font-weight: bold; text-align: center; }
 .hearts { position: absolute; top: 4px; left: 113px; width: 100px; color: #ff626b; font-size: 19px; text-align: center; font-weight: bold; }
-.slide-button { position: absolute; bottom: 7px; right: 10px; width: 74px; height: 51px; background-color: #1c3450db; border: 2px solid #c7eeef; border-radius: 15px; flex-direction: column; justify-content: center; align-items: center; }
+.slide-button { position: absolute; bottom: 7px; right: 10px; width: 74px; height: 51px; background-color: rgba(28,52,80,0.86); border: 2px solid #c7eeef; border-radius: 15px; flex-direction: column; justify-content: center; align-items: center; }
 .slide-icon { color: #ffffff; font-size: 23px; text-align: center; }
 .slide-label { color: #cceeff; font-size: 10px; text-align: center; }
-.pause-button { position: absolute; top: 14px; right: 132px; width: 42px; height: 36px; border-radius: 12px; background-color: #233a4bcc; justify-content: center; align-items: center; }
+.pause-button { position: absolute; top: 14px; right: 132px; width: 42px; height: 36px; border-radius: 12px; background-color: rgba(35,58,75,0.8); justify-content: center; align-items: center; }
 .pause-label { color: #ffffff; font-size: 23px; text-align: center; }
-.shade { position: absolute; left: 0px; top: 0px; width: 336px; height: 480px; background-color: #132237bb; }
-.menu-panel { position: absolute; top: 35px; left: 17px; width: 302px; height: 408px; border-radius: 23px; background-color: #142540ed; border: 2px solid #6bdacb; flex-direction: column; align-items: center; }
+.shade { position: absolute; left: 0px; top: 0px; width: 336px; height: 480px; background-color: rgba(19,34,55,0.74); }
+.menu-panel { position: absolute; top: 35px; left: 17px; width: 302px; height: 408px; border-radius: 23px; background-color: rgba(20,37,64,0.94); border: 2px solid #6bdacb; flex-direction: column; align-items: center; }
 .title { margin-top: 15px; color: #ffe08b; font-weight: bold; font-size: 29px; text-align: center; }
 .subtitle { margin-top: 3px; color: #bce8e8; font-weight: bold; font-size: 12px; text-align: center; }
 .selector { width: 274px; margin-top: 16px; flex-direction: row; justify-content: space-around; }
@@ -324,7 +324,7 @@ export default {
 .play-button { width: 226px; height: 56px; margin-top: 12px; border-radius: 17px; background-color: #ffbd51; align-items: center; justify-content: center; border: 3px solid #fce9ae; }
 .play-label { color: #172c3f; font-size: 28px; font-weight: bold; text-align: center; }
 .instructions { margin-top: 14px; width: 268px; color: #c3d8dd; font-size: 12px; text-align: center; }
-.result-panel { position: absolute; top: 79px; left: 26px; width: 284px; height: 324px; border-radius: 23px; background-color: #1b314cec; border: 2px solid #8bdcd7; flex-direction: column; align-items: center; }
+.result-panel { position: absolute; top: 79px; left: 26px; width: 284px; height: 324px; border-radius: 23px; background-color: rgba(27,49,76,0.93); border: 2px solid #8bdcd7; flex-direction: column; align-items: center; }
 .result-title { margin-top: 22px; color: #ffe48c; font-size: 31px; font-weight: bold; text-align: center; }
 .result-score { margin-top: 10px; color: #ffffff; font-size: 21px; font-weight: bold; text-align: center; }
 .end-car { width: 132px; height: 87px; margin-top: 1px; }
