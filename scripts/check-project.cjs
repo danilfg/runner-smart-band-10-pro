@@ -13,15 +13,17 @@ const imagePaths = new Set([...source.matchAll(/['"](\/common\/[^'"\s]+\.png)['"
 for (const relative of imagePaths) {
   assert.ok(fs.existsSync(path.join(root, 'src', relative.slice(1))), 'Missing asset '+relative);
 }
-for (const asset of ['hero_boy.png','hero_gecko.png','villain_car.png','city_0.png','city_1.png','coin.png']) {
+for (const asset of ['hero_boy_v3.png','hero_gecko_v3.png','villain_car.png','city_0.png','city_1.png','coin.png']) {
   assert.ok(fs.statSync(path.join(root,'src/common',asset)).size > 200, asset);
 }
 // The published 120x145 RGBA sprite canvas uses one baseline for every pose.
-for (const name of ['hero_boy.png','hero_boy_run.png','hero_boy_duck.png',
-  'hero_gecko.png','hero_gecko_run.png','hero_gecko_duck.png']) {
+for (const name of ['hero_boy_v3.png','hero_boy_run_v3.png','hero_boy_duck_v3.png',
+  'hero_gecko_v3.png','hero_gecko_run_v3.png','hero_gecko_duck_v3.png']) {
   const png=fs.readFileSync(path.join(root,'src/common',name));
   assert.equal(png.subarray(1,4).toString('ascii'), 'PNG');
   assert.equal(png.readUInt32BE(16), 120, name+' width');
   assert.equal(png.readUInt32BE(20), 145, name+' height');
 }
+assert.equal(manifest.versionCode,3);
+assert.equal(manifest.versionName,'0.3.0');
 console.log('Manifest, routes and '+imagePaths.size+' image references, 6 character sprites checked.');

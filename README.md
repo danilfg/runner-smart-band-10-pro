@@ -49,3 +49,9 @@ Build output: `dist/*.debug.rpk` via the official [`aiot-toolkit`](https://iot.m
 ## Licensing
 
 Original source code and original vector art in this repository: MIT License. No third-party cartoon artwork is bundled.
+
+## Version 0.3.0 — character art cache fix
+
+The six active character images use new _v3.png filenames in both the menu and the running game. This prevents older image paths from being used by app caches on the band. They are the improved, hand-drawn characters already committed in 0.2.0, now wired into distinct resource paths. The build verifies those bytes in the final RPK before publishing. The main menu displays ENDLESS CITY RUN · V3 to identify the new package.
+
+To upgrade safely, install the latest v0.3.x RPK in AstroBox. If the watch still shows the old art, delete only the Street Dash quick app and reinstall it — do not unpair or reset the band. The explicit EXIT GAME button is retained.

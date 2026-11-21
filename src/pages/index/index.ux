@@ -31,14 +31,14 @@
     <div if="{{mode === 'menu'}}" class="shade"></div>
     <div if="{{mode === 'menu'}}" class="menu-panel">
       <text class="title">STREET DASH</text>
-      <text class="subtitle">ENDLESS CITY RUN</text>
+      <text class="subtitle">ENDLESS CITY RUN · V3</text>
       <div class="selector">
         <div class="hero-card" style="border-color: {{boyBorder}};" @click="pickBoy">
-          <image class="pick-image" src="/common/hero_boy.png"></image>
+          <image class="pick-image" src="/common/hero_boy_v3.png"></image>
           <text class="pick-label">KID</text>
         </div>
         <div class="hero-card" style="border-color: {{geckoBorder}};" @click="pickGecko">
-          <image class="pick-image" src="/common/hero_gecko.png"></image>
+          <image class="pick-image" src="/common/hero_gecko_v3.png"></image>
           <text class="pick-label">GECKO</text>
         </div>
       </div>
@@ -79,8 +79,8 @@ import app from '@system.app'
 const GROUND_TOP = 252
 const FPS_MS = 50
 const HERO_IMAGES = {
-  boy: ['/common/hero_boy.png', '/common/hero_boy_run.png', '/common/hero_boy_duck.png'],
-  gecko: ['/common/hero_gecko.png', '/common/hero_gecko_run.png', '/common/hero_gecko_duck.png']
+  boy: ['/common/hero_boy_v3.png', '/common/hero_boy_run_v3.png', '/common/hero_boy_duck_v3.png'],
+  gecko: ['/common/hero_gecko_v3.png', '/common/hero_gecko_run_v3.png', '/common/hero_gecko_duck_v3.png']
 }
 const OBSTACLES = [
   { image: '/common/cone.png', width: 52, height: 60, top: 339, kind: 'ground' },

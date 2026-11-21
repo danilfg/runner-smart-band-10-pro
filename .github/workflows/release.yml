@@ -37,6 +37,8 @@ jobs:
           find dist -type f -name '*.rpk' -exec cp {} out/Street-Dash-Band10Pro.rpk \;
           test -s out/Street-Dash-Band10Pro.rpk
           file out/Street-Dash-Band10Pro.rpk
+      - name: Verify character artwork in the RPK
+        run: python scripts/verify_rpk.py out/Street-Dash-Band10Pro.rpk
       - name: Upload installable package
         uses: actions/upload-artifact@v4
         with:
@@ -48,8 +50,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v0.2.${{ github.run_number }}"
+          TAG="v0.3.${{ github.run_number }}"
           gh release create "$TAG" out/Street-Dash-Band10Pro.rpk \
             --title "Street Dash $TAG" \
-            --notes "Updated character sprites and EXIT GAME menu action for Xiaomi Smart Band 10 Pro on China Vela firmware. Download the .rpk and install it through AstroBox. Experimental: test on your own device." \
+            --notes "New versioned V3 character art with RPK asset integrity checks and EXIT GAME for Xiaomi Smart Band 10 Pro on China Vela firmware. Download the .rpk and install it through AstroBox. Experimental: test on your own device." \
             --latest

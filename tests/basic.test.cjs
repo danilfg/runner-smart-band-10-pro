@@ -22,3 +22,13 @@ test('exit button and edge-back terminate the app from menu', () => {
   assert.match(source, /onBackPress\(\)/);
   assert.ok(manifest.features.some((f) => f.name === 'system.app'));
 });
+
+test('V3 art assets are referenced and version upgraded', () => {
+  const source=fs.readFileSync(path.join(root,'src/pages/index/index.ux'),'utf8');
+  for (const kind of ['boy','gecko']) for (const pose of ['','_run','_duck'])
+    assert.ok(source.includes('hero_'+kind+pose+'_v3.png'));
+  assert.ok(source.includes('ENDLESS CITY RUN · V3'));
+  const manifest=JSON.parse(fs.readFileSync(path.join(root,'src/manifest.json'),'utf8'));
+  assert.equal(manifest.versionCode,3);
+  assert.equal(manifest.versionName,'0.3.0');
+});
