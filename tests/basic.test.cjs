@@ -11,3 +11,14 @@ test('game contains two selectable characters and replay', () => {
 test('static project check passes', () => {
   assert.match(execFileSync(process.execPath,['scripts/check-project.cjs'],{cwd:root,encoding:'utf8'}),/checked/);
 });
+
+test('exit button and edge-back terminate the app from menu', () => {
+  const source=fs.readFileSync(path.join(root,'src/pages/index/index.ux'),'utf8');
+  const manifest=JSON.parse(fs.readFileSync(path.join(root,'src/manifest.json'),'utf8'));
+  assert.match(source, /@click="exitGame"/);
+  assert.match(source, /import app from '@system.app'/);
+  assert.match(source, /app\.terminate\(\)/);
+  assert.match(source, /if \(e\.direction === 'right'\)/);
+  assert.match(source, /onBackPress\(\)/);
+  assert.ok(manifest.features.some((f) => f.name === 'system.app'));
+});

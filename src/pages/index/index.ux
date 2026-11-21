@@ -46,7 +46,10 @@
       <div class="play-button" @click="start">
         <text class="play-label">PLAY ▶</text>
       </div>
-      <text class="instructions">TAP TO JUMP  •  SWIPE DOWN TO SLIDE</text>
+      <div class="exit-button" @click="exitGame">
+        <text class="exit-label">✕  EXIT GAME</text>
+      </div>
+      <text class="instructions">TAP: JUMP  •  SWIPE DOWN: SLIDE</text>
     </div>
 
     <div if="{{mode === 'pause'}}" class="shade"></div>
@@ -71,8 +74,9 @@
 
 <script>
 import storage from '@system.storage'
+import app from '@system.app'
 
-const GROUND_TOP = 282
+const GROUND_TOP = 252
 const FPS_MS = 50
 const HERO_IMAGES = {
   boy: ['/common/hero_boy.png', '/common/hero_boy_run.png', '/common/hero_boy_duck.png'],
@@ -136,9 +140,17 @@ export default {
   onHide() { this.clearLoop(); if (this.mode === 'play') this.mode = 'pause' },
   onDestroy() { this.clearLoop() },
   onBackPress() {
-    if (this.mode === 'play') { this.pause(); return true }
-    if (this.mode === 'pause' || this.mode === 'over') { this.toMenu(); return true }
-    return false
+    // The watch's edge-back gesture is handled here. On the root menu,
+    // the default router-back is unreliable: terminate the app explicitly.
+    if (this.mode === 'play') this.pause()
+    else if (this.mode === 'pause' || this.mode === 'over') this.toMenu()
+    else this.exitGame()
+    return true
+  },
+  exitGame() {
+    this.clearLoop()
+    // Official Xiaomi Vela app API. Never unpair or touch Mi Fitness here.
+    app.terminate()
   },
   pickBoy() {
     if (this.mode !== 'menu') return
@@ -207,9 +219,16 @@ export default {
     this.jump()
   },
   handleSwipe(e) {
+    if (!e) return
+    if (e.direction === 'right') {
+      if (this.mode === 'menu') this.exitGame()
+      else if (this.mode === 'play') this.pause()
+      else this.toMenu()
+      return
+    }
     if (this.mode !== 'play') return
-    if (e && e.direction === 'down') this.slide()
-    else if (e && e.direction === 'up') this.jump()
+    if (e.direction === 'down') this.slide()
+    else if (e.direction === 'up') this.jump()
   },
   createObstacle() {
     const n = Math.floor(Math.random() * OBSTACLES.length)
@@ -298,7 +317,7 @@ export default {
 <style>
 .screen { width: 336px; height: 480px; background-color: #29bfd8; overflow: hidden; }
 .panorama { position: absolute; top: 0px; width: 672px; height: 480px; }
-.character { position: absolute; width: 100px; height: 115px; }
+.character { position: absolute; width: 120px; height: 145px; }
 .coin { position: absolute; width: 40px; height: 40px; }
 .prop { position: absolute; }
 .enemy { position: absolute; top: 306px; width: 152px; height: 100px; }
@@ -313,17 +332,17 @@ export default {
 .pause-button { position: absolute; top: 14px; right: 132px; width: 42px; height: 36px; border-radius: 12px; background-color: rgba(35,58,75,0.8); justify-content: center; align-items: center; }
 .pause-label { color: #ffffff; font-size: 23px; text-align: center; }
 .shade { position: absolute; left: 0px; top: 0px; width: 336px; height: 480px; background-color: rgba(19,34,55,0.74); }
-.menu-panel { position: absolute; top: 35px; left: 17px; width: 302px; height: 408px; border-radius: 23px; background-color: rgba(20,37,64,0.94); border: 2px solid #6bdacb; flex-direction: column; align-items: center; }
-.title { margin-top: 15px; color: #ffe08b; font-weight: bold; font-size: 29px; text-align: center; }
+.menu-panel { position: absolute; top: 22px; left: 17px; width: 302px; height: 430px; border-radius: 23px; background-color: rgba(20,37,64,0.94); border: 2px solid #6bdacb; flex-direction: column; align-items: center; }
+.title { margin-top: 13px; color: #ffe08b; font-weight: bold; font-size: 29px; text-align: center; }
 .subtitle { margin-top: 3px; color: #bce8e8; font-weight: bold; font-size: 12px; text-align: center; }
-.selector { width: 274px; margin-top: 16px; flex-direction: row; justify-content: space-around; }
+.selector { width: 274px; margin-top: 10px; flex-direction: row; justify-content: space-around; }
 .hero-card { width: 121px; height: 157px; border-width: 3px; border-radius: 15px; background-color: #244962; flex-direction: column; align-items: center; }
-.pick-image { width: 97px; height: 115px; }
+.pick-image { width: 108px; height: 129px; }
 .pick-label { color: #fff8d4; font-size: 19px; font-weight: bold; text-align: center; }
-.best-text { margin-top: 12px; font-size: 17px; color: #f8e4a2; font-weight: bold; text-align: center; }
-.play-button { width: 226px; height: 56px; margin-top: 12px; border-radius: 17px; background-color: #ffbd51; align-items: center; justify-content: center; border: 3px solid #fce9ae; }
+.best-text { margin-top: 7px; font-size: 17px; color: #f8e4a2; font-weight: bold; text-align: center; }
+.play-button { width: 226px; height: 49px; margin-top: 8px; border-radius: 17px; background-color: #ffbd51; align-items: center; justify-content: center; border: 3px solid #fce9ae; }
 .play-label { color: #172c3f; font-size: 28px; font-weight: bold; text-align: center; }
-.instructions { margin-top: 14px; width: 268px; color: #c3d8dd; font-size: 12px; text-align: center; }
+.instructions { margin-top: 7px; width: 268px; color: #c3d8dd; font-size: 11px; text-align: center; }
 .result-panel { position: absolute; top: 79px; left: 26px; width: 284px; height: 324px; border-radius: 23px; background-color: rgba(27,49,76,0.93); border: 2px solid #8bdcd7; flex-direction: column; align-items: center; }
 .result-title { margin-top: 22px; color: #ffe48c; font-size: 31px; font-weight: bold; text-align: center; }
 .result-score { margin-top: 10px; color: #ffffff; font-size: 21px; font-weight: bold; text-align: center; }
@@ -332,4 +351,7 @@ export default {
 .action-label { color: #193047; font-size: 21px; font-weight: bold; text-align: center; }
 .secondary { width: 174px; height: 40px; border: 2px solid #b4d2e6; border-radius: 14px; background-color: #355774; justify-content: center; align-items: center; margin-top: 8px; }
 .secondary-label { color: #ffffff; font-size: 18px; font-weight: bold; text-align: center; }
+/* Accessible exit control: users can always leave, even if edge swipes fail. */
+.exit-button { width: 205px; height: 39px; margin-top: 8px; border: 2px solid #c0d6e3; border-radius: 14px; background-color: #345774; align-items: center; justify-content: center; }
+.exit-label { color: #ffffff; font-size: 18px; font-weight: bold; text-align: center; }
 </style>

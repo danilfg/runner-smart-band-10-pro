@@ -16,4 +16,12 @@ for (const relative of imagePaths) {
 for (const asset of ['hero_boy.png','hero_gecko.png','villain_car.png','city_0.png','city_1.png','coin.png']) {
   assert.ok(fs.statSync(path.join(root,'src/common',asset)).size > 200, asset);
 }
-console.log('Manifest, routes and '+imagePaths.size+' image references checked.');
+// The published 120x145 RGBA sprite canvas uses one baseline for every pose.
+for (const name of ['hero_boy.png','hero_boy_run.png','hero_boy_duck.png',
+  'hero_gecko.png','hero_gecko_run.png','hero_gecko_duck.png']) {
+  const png=fs.readFileSync(path.join(root,'src/common',name));
+  assert.equal(png.subarray(1,4).toString('ascii'), 'PNG');
+  assert.equal(png.readUInt32BE(16), 120, name+' width');
+  assert.equal(png.readUInt32BE(20), 145, name+' height');
+}
+console.log('Manifest, routes and '+imagePaths.size+' image references, 6 character sprites checked.');

@@ -20,6 +20,11 @@ def circle(x,y,r,fill,stroke='#282b35',sw=3):return f'<circle cx="{x}" cy="{y}" 
 def line(x1,y1,x2,y2,color='#272a31',w=3):return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{color}" stroke-width="{w}" stroke-linecap="round"/>'
 
 def save(name,w,h,content):
+ # Character PNGs are carefully authored artwork, not procedural placeholders.
+ # Keep them unchanged when regenerating procedural background/prop graphics.
+ if name.startswith('hero_') and (DEST/name).exists():
+  print('keep character art:',name)
+  return
  raw=cairosvg.svg2png(bytestring=svg(w,h,content).encode('utf8'),output_width=w,output_height=h)
  im=Image.open(io.BytesIO(raw)).convert('RGBA')
  # lossless palette works for tiny app budget without large RGBA assets
@@ -82,50 +87,70 @@ for layer in (0,1):
   contents.append(circle(x,y,rng.choice([0.6,0.7,1]),rng.choice(['#454b53','#81868d','#98908a']),'none',0))
  save(f'city_{layer}.png',672,480,''.join(contents))
 
-# Character 1: small brave adventurer with jet-black swoosh and cream face, original design.
+
+# Character 1: lanky kid hero with huge swept hair, pointy nose and oversized eyes.
 def boy(step=0,duck=False):
+ body=''
+ body+=ellipse(52,110,28,5,'#2d3140','none',0)
  if duck:
-  content=ellipse(49,99,31,6,'#252b39','none',0)
-  content+=path('M27 65 L64 64 L74 77 L47 87 L27 77 Z','#fffaf1')
-  content+=path('M42 81 L29 100 M62 82 L71 97','none','#292631',5)
-  content+=ellipse(42,40,20,31,'#f1c681')
-  content+=path('M21 25 Q14 0 40 4 Q60 -4 70 22 L63 34 Q43 18 20 34 Z','#171b28')
+  body+=path('M28 73 Q43 67 59 69 L61 86 Q48 90 34 87 L27 81 Z','#fbfbf5')
+  body+=path('M34 88 L28 101 M56 88 L64 101','none','#e0ae71',5)
+  body+=path('M25 102 L37 102 M58 102 L69 102','none','#1d2231',6)
+  body+=ellipse(44,45,16,29,'#e7bd82')
+  body+=path('M58 50 Q78 43 82 29 Q84 17 73 17 Q62 6 46 9 Q27 7 18 18 Q12 28 18 40 Q28 36 36 33 Q50 31 58 50 Z','#141824')
+  body+=path('M58 54 Q66 54 70 50','none','#d0915d',2)
+  body+=path('M39 72 L22 81','none','#deb074',5)
+  body+=path('M52 73 L69 80','none','#deb074',5)
  else:
-  content=ellipse(49,108,27,5,'#252b39','none',0)
-  content+=path('M37 69 L40 91 L28 106 M54 69 L59 89 L70 106','none','#e5af72',6)
-  content+=path('M26 107 L39 108 M62 108 L78 110','none','#1e2230',7)
-  content+=path('M34 48 L64 51 L62 80 L31 77 Z','#f8faf2')
-  content+=path('M32 58 L17 76 L10 68 M62 57 L75 67 L83 62','none','#e5af72',6)
-  if step:
-   content+=path('M38 79 L26 105 M57 79 L71 104','none','#352a31',4)
-  content+=ellipse(43,33,21,29,'#f0c884')
-  content+=path('M20 28 Q9 6 36 6 Q50 -3 63 11 L63 27 Q54 17 48 20 Q34 15 22 37 Z','#151723')
-  content+=path('M20 21 Q18 2 32 1 Q56 -4 59 8','none','#101724',5)
- content+=ellipse(38,36,7,9,'#fffefa')+ellipse(54,37,8,9,'#fffefa')
- content+=circle(40,39,2.5,'#171723','none',0)+circle(54,40,2.5,'#171723','none',0)
- content+=path('M46 45 Q54 48 59 44','none','#9e5153',2)
- return content
+  body+=path('M37 59 Q44 57 57 58 L60 82 Q48 86 36 83 Z','#fbfaf3')
+  body+=path('M38 82 L30 104 M57 82 L66 104','none','#e0ae71',5)
+  body+=path('M29 104 L39 104 M66 104 L76 104','none','#1d2231',6)
+  arm_l='M36 65 L23 74' if step else 'M36 65 L20 67'
+  arm_r='M58 65 L70 76' if step else 'M58 65 L73 66'
+  body+=path(arm_l,'none','#deb074',5)
+  body+=path(arm_r,'none','#deb074',5)
+  body+=ellipse(46,37,16,31,'#e7bd82')
+  body+=path('M58 44 Q78 38 84 22 Q85 9 73 8 Q63 -1 48 2 Q31 -2 20 8 Q13 18 16 31 Q31 27 42 24 Q53 22 58 44 Z','#141824')
+  body+=path('M55 54 Q63 56 68 53','none','#d0915d',2)
+ body+=ellipse(38,37,8,10,'#fffef5')+ellipse(52,38,9,10,'#fffef5')
+ body+=circle(40,39,2.8,'#151822','none',0)+circle(54,40,2.8,'#151822','none',0)
+ body+=path('M55 44 L66 47','none','#d0915d',2)
+ body+=path('M55 44 Q62 46 65 43','none','#cc9966',1)
+ return body
 save('hero_boy.png',100,115,boy())
 save('hero_boy_run.png',100,115,boy(step=1))
 save('hero_boy_duck.png',100,115,boy(duck=True))
 
-# Character 2: smiling jade-green lizard with backwards sailor-blue cap.
+# Character 2: stretch-limbed green gecko with backward cap and baseball tee.
 def gecko(step=0,duck=False):
- c=ellipse(49,109,33,5,'#30323d','none',0)
+ c=''
+ c+=ellipse(52,111,31,5,'#2d3140','none',0)
  if duck:
-  c+=path('M20 83 Q43 68 67 82 Q77 95 63 99 Q49 92 33 103','none','#4fd76d',16)
-  cy=54
+  c+=path('M31 86 Q44 67 63 67 Q73 68 80 79 Q64 83 57 91 Q47 101 35 105','none','#5fe067',14)
+  c+=path('M39 71 Q52 66 68 71 L68 85 Q54 89 43 86 Z','#f7f7f4')
+  c+=path('M31 71 L40 71 Q43 76 43 86 L31 85 Z','#c8453e')
+  c+=path('M67 71 L77 72 L77 85 L67 85 Z','#c8453e')
+  head_y=39
  else:
-  c+=path('M42 49 Q20 62 38 87 Q58 107 70 90 Q80 75 61 66','none','#4bd868',12)
-  c+=path('M53 70 L75 91 L82 107 M41 70 L26 92 L21 105','none','#58cb6c',6)
-  c+=path('M38 55 L23 68 M60 53 L74 68','none','#4bc968',5)
-  cy=33
- c+=path(f'M30 {cy+18} Q36 {cy-16} 64 {cy-4} L76 {cy+13} Q55 {cy+17} 44 {cy+29} Z','#74e98b')
- c+=ellipse(45,cy,14,16,'#fff8ee')+ellipse(65,cy+2,12,15,'#fff8ee')
- c+=circle(48,cy+1,4,'#222837','none',0)+circle(67,cy+3,4,'#222837','none',0)
- c+=path(f'M49 {cy+23} Q62 {cy+29} 76 {cy+19}','none','#1b7867',3)
- c+=path(f'M30 {cy-9} L30 {cy-19} Q47 {cy-36} 72 {cy-17} L83 {cy-7} Z','#284a81')
- c+=path(f'M65 {cy-12} Q84 {cy-13} 92 {cy-3} Q76 {cy+2} 64 {cy-2} Z','#2e5c92')
+  c+=path('M44 47 Q27 61 32 82 Q40 103 58 101 Q70 99 71 84 Q73 68 59 60','none','#59de67',12)
+  c+=path('M37 63 Q52 59 69 63 L69 83 Q55 87 42 84 Z','#f7f7f4')
+  c+=path('M29 64 L39 64 Q43 71 42 83 L30 83 Z','#c8453e')
+  c+=path('M68 64 L79 64 L80 82 L69 83 Z','#c8453e')
+  if step:
+   c+=path('M43 82 L35 103','none','#56c56a',5)
+   c+=path('M58 82 L72 103','none','#56c56a',5)
+  else:
+   c+=path('M45 82 L39 104','none','#56c56a',5)
+   c+=path('M57 82 L63 104','none','#56c56a',5)
+  c+=path('M43 68 L28 76','none','#56c56a',4)
+  c+=path('M64 68 L78 75','none','#56c56a',4)
+  head_y=31
+ c+=path(f'M36 {head_y+12} Q41 {head_y-9} 57 {head_y-7} Q72 {head_y-5} 80 {head_y+8} Q67 {head_y+21} 49 {head_y+23} Q39 {head_y+23} 36 {head_y+12} Z','#79f283')
+ c+=ellipse(48,head_y,10,12,'#fffef6')+ellipse(64,head_y+2,11,12,'#fffef6')
+ c+=circle(50,head_y+1,3,'#20252f','none',0)+circle(66,head_y+3,3,'#20252f','none',0)
+ c+=path(f'M53 {head_y+14} Q66 {head_y+18} 73 {head_y+12}','none','#256f63',2)
+ c+=path(f'M34 {head_y-8} L35 {head_y-18} Q45 {head_y-29} 58 {head_y-28} Q71 {head_y-28} 80 {head_y-16} L87 {head_y-9} Q74 {head_y-3} 64 {head_y-5} Q51 {head_y-8} 34 {head_y-8} Z','#29508d')
+ c+=path(f'M71 {head_y-13} Q84 {head_y-13} 92 {head_y-6} Q82 {head_y+1} 69 {head_y-1} Z','#2d5b9a')
  return c
 save('hero_gecko.png',100,115,gecko())
 save('hero_gecko_run.png',100,115,gecko(step=1))

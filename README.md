@@ -2,7 +2,7 @@
 
 An original hand-drawn, offline endless runner for **Xiaomi Smart Band 10 Pro Ceramic (Chinese Vela firmware)**.
 
-City and character graphics are created by the deterministic Python asset generator during CI builds.
+![City scene](src/common/city_0.png)
 
 ## Download / Install
 
